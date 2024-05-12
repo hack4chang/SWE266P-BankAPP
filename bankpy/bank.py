@@ -39,14 +39,23 @@ def register():
     if request.method == "POST":
         username = request.form.get('register_username')
         password = request.form.get('register_password')
+        print("USERNAME IS", username)
+        print("PASSWORD IS", password)
         if username in bank_accounts.keys():
             return render_template('register_taken_username.html')
-        new_account = Account(username, password)
-        bank_accounts[username] = new_account
-        login_records[username] = password
-        write_account_to_file(new_account)
+        if not username or not password:
+            return redirect(url_for('invalid_input'))
+        else:
+            new_account = Account(username, password)
+            bank_accounts[username] = new_account
+            login_records[username] = password
+            write_account_to_file(new_account)
         return redirect(url_for('home')) #takes you back to the home page after registering
     return render_template('register.html')
+
+@app.route('/invalid_input.html', methods=["GET", "POST"])
+def invalid_input():
+    return render_template('invalid_input.html')
 
 @app.route('/register.html', methods=["GET", "POST"])
 def registered():
