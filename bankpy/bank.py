@@ -70,14 +70,34 @@ def registered():
         write_account_to_file(new_account)
         return render_template('home.html')
 
+@app.route('/forgot_password.html', methods=["GET", "POST"])
+def forgot_password():
+    print(request.method)
+    if request.method == "GET":
+        username = request.form.get('username')
+        print("USERNAME IS", username)
+        if username in login_records.keys():
+            print("RETURNING PASSWORD")
+            return render_template('forgot_password.html', data=login_records[username])
+        else:
+            print("NO PASSWORD")
+            return redirect(url_for('no_password'))
 
+@app.route('/no_password.html', methods=["GET", "POST"])
+def no_password():
+    return render_template('no_password.html')
 
-
-
-
-
-
-
+@app.route('/account.html', methods=["GET", "POST"])
+def account():
+    action = request.form.get('action')
+    if action == 'forgot_password':
+        username = request.form.get('username')
+        if username in login_records:
+            return render_template('forgot_password.html', data=login_records[username])
+        else:
+            return redirect(url_for('no_password'))
+    else:
+        pass
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
