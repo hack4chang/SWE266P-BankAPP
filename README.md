@@ -7,6 +7,6 @@ if you have any questions pls lmk
 All HTML pages that you want to use for the web app need to be located in templates.  
 that's where flask looks for pages. that took me too long to figure out 🙄
 
-**TO RUN PROGRAM**
+**TO RUN PROGRAM**  
 In command prompt/terminal run the python file. Then, open a browser window and go to the url "127.0.0.1:5000".  
 On there you should see the home page for the bank app and navigate the web app.
