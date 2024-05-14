@@ -50,7 +50,7 @@ def register():
             bank_accounts[username] = new_account
             login_records[username] = password
             write_account_to_file(new_account)
-        return redirect(url_for('home')) #takes you back to the home page after registering
+        return redirect(url_for('home')) # takes you back to the home page after registering
     return render_template('register.html')
 
 @app.route('/invalid_input.html', methods=["GET", "POST"])
@@ -98,6 +98,11 @@ def account():
             return redirect(url_for('no_password'))
     else:
         pass
+
+# @app.route('/transfer.html', methods=["GET", "POST"])
+# def transfer():
+#     return render_template('no_password.html');
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
