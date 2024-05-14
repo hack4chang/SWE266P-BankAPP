@@ -130,3 +130,4 @@ dist
 .pnp.*
 
 266env
+bankpy/instance
