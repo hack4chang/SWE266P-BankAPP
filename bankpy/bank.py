@@ -72,8 +72,7 @@ def registered():
 
 @app.route('/forgot_password.html', methods=["GET", "POST"])
 def forgot_password():
-    print(request.method)
-    if request.method == "GET":
+    if request.method == "POST":
         username = request.form.get('username')
         print("USERNAME IS", username)
         if username in login_records.keys():
@@ -89,15 +88,20 @@ def no_password():
 
 @app.route('/account.html', methods=["GET", "POST"])
 def account():
-    action = request.form.get('action')
+    action = request.form.get('login') #THIS USES BUTTON NAME ATTRIBUTE 
     if action == 'forgot_password':
-        username = request.form.get('username')
+        username = request.form.get('username') 
         if username in login_records:
             return render_template('forgot_password.html', data=login_records[username])
         else:
             return redirect(url_for('no_password'))
     else:
-        pass
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if login_records.get(username, "aa") == password:
+            return render_template('account.html', username=username)
+        else:
+            return render_template('no_account.html')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

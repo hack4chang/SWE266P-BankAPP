@@ -6,16 +6,17 @@
         <p>Don't have an account? Register below!</p>
         <a className="Register" href="register.html" rel="noopener noreferrer">Register</a>
         <p>
+            That username is not registered in this bank. Register for an account now!
             <h5>Login</h5>
-            <form id="login_form" method="post"> 
+            <form id="login_form" action="account.html" method="post"> 
                 <h6 style="margin-bottom: 8px;">username</h6>
-                <input type="text" placeholder="Username"/>
+                <input id="username_input" type="text" name="username" placeholder="Username"/>
                 <br>
-                <a className="forgot_password" href="forgot_password.html" rel="noopener noreferrer">Forgot Password?</a>
-                <p>The password for that username is: {{data}}</p>
+                <button type="submit" name="action" value="forgot_password"> Forgot Password?</button>
+                <input type="hidden" name="action" value="forgot_password">
                 <h6 style="margin-bottom: 8px;">password</h6>
                 <input type="password" placeholder="Password"/>
-                <button type="submit" formaction="account.html" value="login">Login</button>
+                <button type="submit" name="action" value="login">Login</button>
             </form>
           </p>
           <a href="/">home</a>
