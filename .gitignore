@@ -131,3 +131,4 @@ dist
 
 266env
 bankpy/instance
+__pycache__/
