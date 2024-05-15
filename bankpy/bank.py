@@ -12,6 +12,7 @@ def create_app():
     with app.app_context():
         db.create_all()
 
+    """
     @app.errorhandler(404)
     def page_not_found(e):
         return render_template('404.html'), 404
@@ -19,6 +20,7 @@ def create_app():
     @app.errorhandler(500)
     def internal_server_error(e):
         return render_template('500.html'), 500
+    """
 
     @app.route('/')
     def home():
@@ -31,11 +33,13 @@ def create_app():
     def login():
         if session.get('id') != None:
             return redirect(url_for('dashboard', username=session.get('id')))
-        return render_template('login.html')
+        message = request.args.get('message')
+        print(message)
+        return render_template('login.html', message=message)
 
     @app.route('/dashboard/<username>', methods=["GET", "POST"])
     def dashboard(username):
-        return render_template('dashboard.html', user=username)
+        return render_template('dashboard.html', user=username) 
 
     @app.route('/login_verify', methods=["POST"])
     def login_verify():
@@ -48,7 +52,7 @@ def create_app():
             user = AccountBalance.query.filter_by(username=username).first()
             if user and user.check_password(password):
                 session['id'] = username
-                return redirect(url_for('dashboard', username=username)) # redirect(url_for('dashboard'))
+                return redirect(url_for('dashboard', username=username)) 
             else:
                 return '<h3>User Not Found or Password Incorrect! Please Login Again!</h3>'
 
@@ -65,14 +69,15 @@ def create_app():
             db.session.add(new_account)
             db.session.commit()
             print(f"[Request Success]")
-            return redirect(url_for('login'))
+            return redirect(url_for('login', message="Register Success!"))
+
         except Exception as e:
             db.session.rollback()
             print(f"Error occurred: {e}")
             if str(e).find("UNIQUE constraint failed"):
-                return '<h3>Username Exist! Please login or register with another name!</h3>'
+                return '<h3>Username Exist! Please login or register with another name!</h3>', 400
             else:
-                return '<h3>Invalid Input or Invalid Account ID or Invalid Password!</h3>'
+                return '<h3>Invalid Input or Invalid Account ID or Invalid Password!</h3>', 400
 
     @app.route('/register', methods=["GET", "POST"])
     def register():

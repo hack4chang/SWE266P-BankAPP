@@ -1,13 +1,11 @@
 {% extends "layout.html" %}
 {% block title %}User Login{% endblock %}
-
-{% for message in get_flashed_messages() %}
-    <div class="alert alert-danger">
-        {{ message }}
-    </div>
-{% endfor %}
-
 {% block content %}
+{% if message %}
+<script>
+    alert("{{ message }}");
+</script>
+{% endif %}
 <body>
 	<h2>User Login</h2>
 	<form id="login_form" action="{{ url_for('login_verify') }}" method="post"> 
