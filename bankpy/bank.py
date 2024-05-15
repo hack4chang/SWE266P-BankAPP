@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, flash
+from flask import Flask, request, render_template, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from database import AccountBalance, db
 
@@ -6,6 +6,7 @@ def create_app():
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.secret_key = '123'
     db.init_app(app)
 
     with app.app_context():
@@ -20,17 +21,21 @@ def create_app():
         return render_template('500.html'), 500
 
     @app.route('/')
-    @app.route('/index.html')
     def home():
+        print(session.get('id'))
+        if session.get('id') != None:
+            return redirect(url_for('dashboard', username=session.get('id')))
         return render_template('home.html')
 
-    @app.route('/login.html', methods=["GET", "POST"])
+    @app.route('/login', methods=["GET", "POST"])
     def login():
+        if session.get('id') != None:
+            return redirect(url_for('dashboard', username=session.get('id')))
         return render_template('login.html')
 
-    @app.route('/<username>/dashboard.html', methods=["GET", "POST"])
+    @app.route('/dashboard/<username>', methods=["GET", "POST"])
     def dashboard(username):
-        return render_template('dashboard.html')
+        return render_template('dashboard.html', user=username)
 
     @app.route('/login_verify', methods=["POST"])
     def login_verify():
@@ -42,6 +47,7 @@ def create_app():
         else:
             user = AccountBalance.query.filter_by(username=username).first()
             if user and user.check_password(password):
+                session['id'] = username
                 return redirect(url_for('dashboard', username=username)) # redirect(url_for('dashboard'))
             else:
                 return '<h3>User Not Found or Password Incorrect! Please Login Again!</h3>'
@@ -68,13 +74,15 @@ def create_app():
             else:
                 return '<h3>Invalid Input or Invalid Account ID or Invalid Password!</h3>'
 
-    @app.route('/register.html', methods=["GET", "POST"])
+    @app.route('/register', methods=["GET", "POST"])
     def register():
+        if session.get('id') != None:
+            return redirect(url_for('dashboard', username=session.get('id')))
         return render_template('register.html')
 
     @app.route('/logout', methods=["GET", "POST"])
     def logout():
-        # session.pop('user', None)
+        session.pop('id', None)
         return redirect(url_for('home'))
 
     return app
