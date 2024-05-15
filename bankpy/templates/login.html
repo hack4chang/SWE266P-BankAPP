@@ -1,21 +1,31 @@
-{% extends "layout.html" %}
-{% block title %}User Login{% endblock %}
-{% block content %}
-{% if message %}
+{% extends "layout.html" %} {% block title %}User Login{% endblock %} {% block
+content %} {% if message %}
 <script>
-    alert("{{ message }}");
+  alert("{{ message }}");
 </script>
 {% endif %}
 <body>
-	<h2>User Login</h2>
-	<form id="login_form" action="{{ url_for('login_verify') }}" method="post"> 
-		<h5 style="margin-bottom: 10px;">Username</h5>
-		<input id="username_input" type="text" name="username" placeholder="Username"/>
-		<h5 style="margin-bottom: 10px;">Password</h5>
-		<input id="password_input" type="password" name="password" placeholder="Password"/>
-		<button type="submit" name="action" value="login">Login</button>
-		<!--<br><button type="submit" name="action" value="forgot_password">Forgot Password?</button>
+  <form id="login_form" action="{{ url_for('login_verify') }}" method="post">
+    <h2>User Login</h2>
+    <h5 style="margin-bottom: 10px; text-align: left">Username</h5>
+    <input
+      style="text-align: left; float: left; margin-bottom: 40px"
+      id="username_input"
+      type="text"
+      name="username"
+      placeholder="Username"
+    />
+    <br />
+    <h5 style="margin-bottom: 10px; text-align: left">Password</h5>
+    <input
+      id="password_input"
+      type="password"
+      name="password"
+      placeholder="Password"
+    />
+    <button type="submit" name="action" value="login">Login</button>
+    <!--<br><button type="submit" name="action" value="forgot_password">Forgot Password?</button>
 		<input type="hidden" name="action" value="forgot_password">-->
-	</form>
+  </form>
 </body>
 {% endblock %}
