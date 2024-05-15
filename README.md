@@ -18,6 +18,9 @@ docker run -dp 30678:30678 bank_app
 
 #### (B) Run in your local (virtual) environment
 1. Install all the tools needed with pip3 in your local or virtual environment.
+```
+pip3 install -r requirements.txt
+```
 2. Go to the bankpy directory.
 ```
 cd bankpy
@@ -26,4 +29,4 @@ cd bankpy
 ```
 python3 bank.py
 ```
-4. Open your browser and fetch the page: [http://127.0.0.1/30678](http://127.0.0.1/30678).
+4. Open your browser and fetch the page: [http://127.0.0.1:30678](http://127.0.0.1:30678).
