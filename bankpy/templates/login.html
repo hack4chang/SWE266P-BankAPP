@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block title %}User Login{% endblock %}
+
+{% for message in get_flashed_messages() %}
+    <div class="alert alert-danger">
+        {{ message }}
+    </div>
+{% endfor %}
+
+{% block content %}
+<body>
+	<h2>User Login</h2>
+	<form id="login_form" action="{{ url_for('login_verify') }}" method="post"> 
+		<h5 style="margin-bottom: 10px;">Username</h5>
+		<input id="username_input" type="text" name="username" placeholder="Username"/>
+		<h5 style="margin-bottom: 10px;">Password</h5>
+		<input id="password_input" type="password" name="password" placeholder="Password"/>
+		<button type="submit" name="action" value="login">Login</button>
+		<!--<br><button type="submit" name="action" value="forgot_password">Forgot Password?</button>
+		<input type="hidden" name="action" value="forgot_password">-->
+	</form>
+</body>
+{% endblock %}

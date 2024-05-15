@@ -1,21 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-    <header>
-        <h1>Register</h1>
-    </header>
-    <body>
-        <p>
-            Please enter your desired username and password for your account below
-            <form action="register.html" method="post"> <!--the action attribute is a url to where the input info goes to. in this case it will go to register() in bank.py-->
-            <label style="margin-bottom: 8px;">username</label><br>
-            <input type="text" name="register_username" placeholder="Username"/><br><br>
-            <label style="margin-bottom: 8px;">password</label><br>
-            <input type="password" name="register_password" placeholder="Password"/>
-            <a href="registered">
-            <button type="submit" onclick="home()">Register</button>
-            </a>
-            </form>
-        </p>
-        <a href="home">home</a>
-    </body>
-</html>
+{% extends "layout.html" %}
+{% block title %}User Register{% endblock %}
+{% block content %}
+<body>
+	<h2>User Register</h2>
+    <h5>Please enter your desired username and password for your account below!</h5>
+	<form id="login_form" action="{{ url_for('register_verify') }}" method="post"> 
+		<h5 style="margin-bottom: 10px;">Username</h5>
+		<input id="username_input" type="text" name="username" placeholder="Username"/>
+		<h5 style="margin-bottom: 10px;">Password</h5>
+		<input id="password_input" type="password" name="password" placeholder="Password"/>
+		<h5 style="margin-bottom: 10px;">Type Password Again</h5>
+		<input id="password_input_2" type="password" name="password2" placeholder="Retype Password"/>
+		<button type="submit" name="action" value="login">Login</button>
+	</form>
+</body>
+{% endblock %}

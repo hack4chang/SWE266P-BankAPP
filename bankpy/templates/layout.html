@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Vulnerable Bank Layout Page{% endblock %}</title>
+    <!--<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">-->
+</head>
+<body>
+    <header>
+        <h1>Vulnerable Bank</h1>
+        <h2>Insecure bank application for 2024 Spring SWE266P</h1>
+        <h5>by Dylan, Haren, Hank, and Ryan</h3>
+		<!--
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </nav>
+		-->
+    </header>
+
+    <main>
+        {% block content %}
+        <!-- Main content will be injected here -->
+        {% endblock %}
+    </main>
+
+    <footer>
+        <p style="font-size:10px;">&copy; 2024 DHR Website</p>
+    </footer>
+</body>
+</html>
+

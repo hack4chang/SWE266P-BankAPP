@@ -1,9 +1,6 @@
-<!DOCTYPE html>
+<!--
 <html lang="en">
 	<title>Vulnerable Bank</title>
-    <header>
-        <h1>Welcome to our insecure bank application for SWE 266</h1>
-        <h3>by Dylan, Haren, Hank, and Ryan</h3>
         <p>Don't have an account? Register below!</p>
         <a className="Register" href="register.html" rel="noopener noreferrer">Register</a>
         <p>
@@ -12,12 +9,35 @@
                 <h6 style="margin-bottom: 8px;">username</h6>
                 <input id="username_input" type="text" name="username" placeholder="Username"/>
                 <br>
-                <button type="submit" name="action" value="forgot_password"> Forgot Password?</button>
+                <button type="submit" name="action" value="forgot_password">Forgot Password?</button>
                 <input type="hidden" name="action" value="forgot_password">
                 <h6 style="margin-bottom: 8px;">password</h6>
                 <input type="password" placeholder="Password"/>
                 <button type="submit" name="action" value="login">Login</button>
             </form>
           </p>
-    </header>
 </html>
+-->
+
+{% extends "layout.html" %}
+{% block title %}Homepage{% endblock %}
+{% block content %}
+<body>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li>
+				<a className="Login" href="login.html" rel="noopener noreferrer">
+					User Login
+				</a>
+			</li>
+            <li>
+				<a className="Register" href="register.html" rel="noopener noreferrer">
+					Create and Register an Account
+				</a>
+			</li>
+			</li>
+        </ul>
+    </nav>
+</body>
+{% endblock %}

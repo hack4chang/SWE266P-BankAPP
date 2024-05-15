@@ -5,14 +5,25 @@
 3. Dylan Schiller Loe (dsloe@uci.edu)
 4. Hao-Lun Lin (laolunl@uci.edu)
 
-### Vulnerable Bank APP
-If you are here and want to work on this make sure to pip install flask.  
-if you have any questions pls lmk
+### How to run?
+#### (A) Run with Docker
+1. Build Image.
+```
+docker build -t bank_app .       
+```
+2. Run the container.
+```
+docker run -dp 30678:30678 bank_app
+```
 
-**IMPORTANT**  
-All HTML pages that you want to use for the web app need to be located in templates.  
-that's where flask looks for pages. that took me too long to figure out 🙄
-
-**TO RUN PROGRAM**  
-In command prompt/terminal run the python file. Then, open a browser window and go to the url "127.0.0.1:5000".  
-On there you should see the home page for the bank app and navigate the web app.
+#### (B) Run in your local (virtual) environment
+1. Install all the tools needed with pip3 in your local or virtual environment.
+2. Go to the bankpy directory.
+```
+cd bankpy
+```
+3. Run with flask.
+```
+python3 bank.py
+```
+4. Open your browser and fetch the page: [http://127.0.0.1/30678](http://127.0.0.1/30678).
