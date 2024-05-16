@@ -24,22 +24,24 @@ def create_app():
 
     @app.route('/')
     def home():
-        print(session.get('id'))
-        if session.get('id') != None:
-            return redirect(url_for('dashboard', username=session.get('id')))
+        # print(session.get('id'))
+        # if session.get('id') != None:
+        #    return redirect(url_for('dashboard', username=session.get('id')))
         return render_template('home.html')
 
     @app.route('/login', methods=["GET", "POST"])
     def login():
-        if session.get('id') != None:
-            return redirect(url_for('dashboard', username=session.get('id')))
+        # if session.get('id') != None:
+        #     return redirect(url_for('dashboard', username=session.get('id')))
         message = request.args.get('message')
         print(message)
         return render_template('login.html', message=message)
 
-    @app.route('/dashboard/<username>', methods=["GET", "POST"])
-    def dashboard(username):
-        return render_template('dashboard.html', user=username) 
+    @app.route('/dashboard', methods=["POST"])
+    def dashboard():
+        username = request.args.get('username')
+        balance = request.args.get('balance')
+        return render_template('dashboard.html', username=username, balance=balance) 
 
     @app.route('/login_verify', methods=["POST"])
     def login_verify():
@@ -51,8 +53,7 @@ def create_app():
         else:
             user = AccountBalance.query.filter_by(username=username).first()
             if user and user.check_password(password):
-                session['id'] = username
-                return redirect(url_for('dashboard', username=username)) 
+                return redirect(url_for('dashboard', username=username, balance=user.balance), code=307) 
             else:
                 return '<h3>User Not Found or Password Incorrect! Please Login Again!</h3>'
 
@@ -81,17 +82,27 @@ def create_app():
 
     @app.route('/register', methods=["GET", "POST"])
     def register():
-        if session.get('id') != None:
-            return redirect(url_for('dashboard', username=session.get('id')))
+        # if session.get('id') != None:
+        #     return redirect(url_for('dashboard', username=session.get('id')))
         return render_template('register.html')
+
+    @app.route('/dashboard/<username>/deposit', methods=["GET", "POST"])
+    def deposit(username, balance):
+        return render_template('deposit.html', user=username, balance=balance) 
+
+    """
+    @app.route('/dashboard/<username>/withdraw', methods=["GET", "POST"])
+    def withdraw(username, balance):
+        return render_template('withdraw.html', user=username, balance=balance) 
+    """
 
     @app.route('/logout', methods=["GET", "POST"])
     def logout():
-        session.pop('id', None)
+        # session.pop('id', None)
         return redirect(url_for('home'))
 
     return app
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, host='0.0.0.0', port=30678)
+    app.run(debug=True, host='0.0.0.0', port=5000)
