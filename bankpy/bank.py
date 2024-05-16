@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from database import AccountBalance, db
+import re
 
 def create_app():
     app = Flask(__name__)
@@ -56,29 +57,54 @@ def create_app():
             else:
                 return '<h3>User Not Found or Password Incorrect! Please Login Again!</h3>'
 
-    @app.route('/register_verify', methods=["POST"])
+    @app.route('/register_verify', methods=["GET", "POST"])
     def register_verify():
-        username = request.form.get("username")
-        password = request.form.get("password")
-        password2 = request.form.get("password2")
-        if not username or not password or not password2 or password != password2:
-            return '<h3>Invalid Input or Invalid Account ID or Invalid Password!</h3>'
-        try:
-            print(f"[Register Request] Username - {username}; Password - {password}")
-            new_account = AccountBalance(username=username, password=password, balance=19.99)
-            db.session.add(new_account)
-            db.session.commit()
-            print(f"[Request Success]")
-            return redirect(url_for('login', message="Register Success!"))
 
-        except Exception as e:
-            db.session.rollback()
-            print(f"Error occurred: {e}")
-            if str(e).find("UNIQUE constraint failed"):
-                return '<h3>Username Exist! Please login or register with another name!</h3>', 400
-            else:
-                return '<h3>Invalid Input or Invalid Account ID or Invalid Password!</h3>', 400
+        if request.method == "POST":
+            username = request.form.get("username")
+            password = request.form.get("password")
+            password2 = request.form.get("password2")
+            if not username or not password or not password2 or password != password2:
+                flash('Invalid Input or Invalid Account ID or Invalid Password!')
+                return redirect(request.url)
+        
+            try:
+                print(f"[Register Request] Username - {username}; Password - {password}")
+                # password check would be around here (throws exception if issue found)
+                PasswordUsernameRequirements(password)
 
+                new_account = AccountBalance(username=username, password=password, balance=19.99)
+                db.session.add(new_account)
+                db.session.commit()
+                print(f"[Request Success]")
+                return redirect(url_for('login', message="Register Success!"))
+
+            except Exception as e:
+                db.session.rollback()
+                print(f"Error occurred: {e}")
+                if str(e) == "UNIQUE constraint failed":
+                    flash("Username Exist! Please login or register with another name!", "warning")
+                elif str(e) == "Improper Password characters detected.":
+                    flash("Invalid Password! Improper Characters.", "warning")
+                elif str(e) == "Improper Password length detected.":
+                    flash("Improper Password length detected. Must be greater than 0 characters and less than 127 characters.", "warning")
+                else:
+                    flash("Invalid Input or Invalid Account ID or Invalid Password!", "warning")
+                return redirect(request.url)
+        return render_template('register.html')
+
+
+    def PasswordUsernameRequirements(password):
+         #check password requirements based on regex and length
+        if(not re.search("[a-z]+_-.[0-9]", password)):
+           raise Exception("Improper Password characters detected.")
+        elif(len(password) == 0 or len(password) > 127):
+           raise Exception("Improper Password length detected.")
+        else:
+            print("Password successful")
+
+       
+        
     @app.route('/register', methods=["GET", "POST"])
     def register():
         if session.get('id') != None:
