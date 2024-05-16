@@ -1,21 +1,21 @@
 {% extends "layout.html" %}
-{% block title %}Deposit{% endblock %}
+{% block title %}Withdraw{% endblock %}
 {% block content %}
 <body>
 	<h4>Hi, {{user}}! Your current balance is ${{balance}}.</h4>
-    <h4>How much would you like to deposit?</h4>
+    <h4>How much would you like to withdraw?</h4>
 	<br>
     <br>
     <br>
     <form action="deposit_success.html" method="post">
-    	<label style="margin-bottom: 8px;">Deposit Amount</label>
+    	<label style="margin-bottom: 8px;">Withdraw Amount</label>
         <br>
-	    <input type="number" name="deposit_amount" placeholder="Deposit Amount"/>
+	    <input type="number" name="withdraw_amount" placeholder="Withdraw Amount"/>
         <br>
     	<label style="margin-bottom: 8px;">Username</label>
         <br>
 	    <input type="text" name="username" placeholder="Username"/>
-    	<a href="deposit_success"><button type="submit" onclick="home()">Deposit</button></a>
+    	<a href="deposit_success"><button type="submit" onclick="home()">Withdraw</button></a>
     </form> 
 </body>
 {% endblock %}
