@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block title %}User Login{% endblock %}
+{% block content %}
+<body>
+	<h2>User Login</h2>
+	<form id="login_form" action="verify.html" method="post"> 
+		<h6 style="margin-bottom: 8px;">Username</h6>
+		<input id="username_input" type="text" name="username" placeholder="Username"/>
+		<h6 style="margin-bottom: 8px;">Password</h6>
+		<input type="password_input" placeholder="Password"/>
+		<button type="submit" name="action" value="login">Login</button>
+		<!--<br><button type="submit" name="action" value="forgot_password">Forgot Password?</button>
+		<input type="hidden" name="action" value="forgot_password">-->
+	</form>
+</body>
+{% endblock %}

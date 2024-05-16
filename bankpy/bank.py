@@ -1,158 +1,108 @@
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, flash, session
+from flask_sqlalchemy import SQLAlchemy
+from database import AccountBalance, db
 
-app = Flask(__name__)
+def create_app():
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.secret_key = '123'
+    db.init_app(app)
 
-bank_accounts = {}
-login_records = {}
-current_account = None
+    with app.app_context():
+        db.create_all()
 
-class Balance: #balance class to make balance immutable
-    balance = 0
-    def __init__(self, amount):
-        self.balance = amount
-    def __str__(self) -> str:
-        return str(self.balance)
+    """
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('404.html'), 404
 
-class Account: #user bank account#
-    username = ""
-    password = ""
-    balance = None
-    def __init__(self, username, password, balance):
-        self.username = username
-        self.password = password
-        self.balance = balance
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        return render_template('500.html'), 500
+    """
 
-class BankService: #Bank Service class to do actions of bank
-    def __init__(self) -> None:
-        pass
-    
-    def deposit(bal_to_dep: Balance, dep_amt: int) -> Balance:
-        curr_amt = bal_to_dep.balance
-        new_bal = Balance(curr_amt + dep_amt)
-        return new_bal
-
-    def withdraw(bal_to_wit: Balance, with_amt: int) -> Balance:
-        curr_amt = bal_to_wit.balance
-        new_bal = Balance(curr_amt - with_amt)
-        return new_bal
-
-def write_account_to_file(account):
-    with open('bank_info.txt', 'a') as f:
-        f.write("-ACCOUNT-\n")
-        f.write("username:" + account.username + "," + "password:" + account.password + "," + str(account.balance) + "\n")
-        
-def overrite_balance(account):
-    with open('bank_info.txt', 'w') as f:
-        for line in f.readlines():
-            print(line)
-
-
-@app.route('/') #this is the url that takes you to the returned page
-def home():
-    return render_template('home.html')
-
-
-@app.route('/register.html', methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        username = request.form.get('register_username')
-        password = request.form.get('register_password')
-        initial_balance = request.form.get('register_balance')
-        print("USERNAME IS", username)
-        print("PASSWORD IS", password)
-        print("INITIAL BALANCE IS", initial_balance)
-        if username in bank_accounts.keys():
-            return render_template('register_taken_username.html')
-        if not username or not password:
-            return redirect(url_for('invalid_input'))
-        else:
-            balance = Balance(int(initial_balance))
-            new_account = Account(username, password, balance)
-            bank_accounts[username] = new_account
-            login_records[username] = password
-            write_account_to_file(new_account)
-        return redirect(url_for('home')) #takes you back to the home page after registering
-    return render_template('register.html')
-
-
-@app.route('/invalid_input.html', methods=["GET", "POST"])
-def invalid_input():
-    return render_template('invalid_input.html')
-
-
-@app.route('/register.html', methods=["GET", "POST"])
-def registered():
-    if request.method == "POST":
-        username = request.form.get('register_username')
-        password = request.form.get('register_password')
-        initial_balance = request.form.get('register_balance')
-        print("REGISTERED BALANCE IS", initial_balance)
-        if username in bank_accounts.keys():
-            return render_template('register_taken_username.html')
-        balance = Balance(int(initial_balance))
-        new_account = Account(username, password)
-        new_account.balance = balance
-        bank_accounts[username] = new_account
-        login_records[username] = password
-        write_account_to_file(new_account)
+    @app.route('/')
+    def home():
+        # print(session.get('id'))
+        # if session.get('id') != None:
+        #    return redirect(url_for('dashboard', username=session.get('id')))
         return render_template('home.html')
 
+    @app.route('/login', methods=["GET", "POST"])
+    def login():
+        # if session.get('id') != None:
+        #     return redirect(url_for('dashboard', username=session.get('id')))
+        message = request.args.get('message')
+        print(message)
+        return render_template('login.html', message=message)
 
-@app.route('/forgot_password.html', methods=["GET", "POST"])
-def forgot_password():
-    if request.method == "POST":
-        username = request.form.get('username')
-        print("USERNAME IS", username)
-        if username in login_records.keys():
-            print("RETURNING PASSWORD")
-            return render_template('forgot_password.html', data=login_records[username])
+    @app.route('/dashboard', methods=["POST"])
+    def dashboard():
+        username = request.args.get('username')
+        balance = request.args.get('balance')
+        return render_template('dashboard.html', username=username, balance=balance) 
+
+    @app.route('/login_verify', methods=["POST"])
+    def login_verify():
+        username = request.form.get("username")
+        password = request.form.get("password")
+        print("Username - " + username + "; Password - " + password)
+        if not username or not password:
+            return '<h3>Invalid Input or Invalid Account ID or Invalid Password!</h3>'
         else:
-            print("NO PASSWORD")
-            return redirect(url_for('no_password'))
+            user = AccountBalance.query.filter_by(username=username).first()
+            if user and user.check_password(password):
+                return redirect(url_for('dashboard', username=username, balance=user.balance), code=307) 
+            else:
+                return '<h3>User Not Found or Password Incorrect! Please Login Again!</h3>'
 
+    @app.route('/register_verify', methods=["POST"])
+    def register_verify():
+        username = request.form.get("username")
+        password = request.form.get("password")
+        password2 = request.form.get("password2")
+        if not username or not password or not password2 or password != password2:
+            return '<h3>Invalid Input or Invalid Account ID or Invalid Password!</h3>'
+        try:
+            print(f"[Register Request] Username - {username}; Password - {password}")
+            new_account = AccountBalance(username=username, password=password, balance=19.99)
+            db.session.add(new_account)
+            db.session.commit()
+            print(f"[Request Success]")
+            return redirect(url_for('login', message="Register Success!"))
 
-@app.route('/no_password.html', methods=["GET", "POST"])
-def no_password():
-    return render_template('no_password.html')
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error occurred: {e}")
+            if str(e).find("UNIQUE constraint failed"):
+                return '<h3>Username Exist! Please login or register with another name!</h3>', 400
+            else:
+                return '<h3>Invalid Input or Invalid Account ID or Invalid Password!</h3>', 400
 
+    @app.route('/register', methods=["GET", "POST"])
+    def register():
+        # if session.get('id') != None:
+        #     return redirect(url_for('dashboard', username=session.get('id')))
+        return render_template('register.html')
 
-@app.route('/account.html', methods=["GET", "POST"])
-def account():
-    action = request.form.get('login') #THIS USES BUTTON NAME ATTRIBUTE 
-    if action == 'forgot_password':
-        username = request.form.get('username') 
-        if username in login_records:
-            return render_template('forgot_password.html', data=login_records[username])
-        else:
-            return redirect(url_for('no_password'))
-    else:
-        username = request.form.get('username')
-        password = request.form.get('password')
-        if login_records.get(username, "aa") == password:
-            balance = bank_accounts[username].balance
-            current_account = bank_accounts[username]
-            return render_template('account.html', username=username, balance=balance)
-        else:
-            return render_template('no_account.html')
-        
+    @app.route('/dashboard/<username>/deposit', methods=["GET", "POST"])
+    def deposit(username, balance):
+        return render_template('deposit.html', user=username, balance=balance) 
 
-@app.route('/deposit.html', methods=["GET", "POST"])
-def deposit():
-    return render_template(url_for('deposit'))
+    """
+    @app.route('/dashboard/<username>/withdraw', methods=["GET", "POST"])
+    def withdraw(username, balance):
+        return render_template('withdraw.html', user=username, balance=balance) 
+    """
 
+    @app.route('/logout', methods=["GET", "POST"])
+    def logout():
+        # session.pop('id', None)
+        return redirect(url_for('home'))
 
-@app.route('/deposit_success.html', methods=["GET", "POST"])
-def deposit_success():
-    if request.method == "POST":
-        deposit_amount = request.form.get('deposit_amount') #RETURNS STRING
-        username = request.form.get('username')
-        current_account = bank_accounts[username]
-        new_balance = Balance(int(deposit_amount) + current_account.balance.balance)
-        current_account.balance = new_balance
-        print("NEW BANK ACCOUNT BALANCE IS", str(bank_accounts[username].balance))
-        return render_template('deposit_success.html', username=username, balance=new_balance)
-
+    return app
 
 if __name__ == '__main__':
-    current_account = None
+    app = create_app()
     app.run(debug=True, host='0.0.0.0', port=5000)

@@ -1,17 +1,21 @@
 {% extends "layout.html" %}
-{% block title %}User Register{% endblock %}
+{% block title %}User Login{% endblock %}
 {% block content %}
+{% if message %}
+<script>
+    alert("{{ message }}");
+</script>
+{% endif %}
 <body>
-	<h2>User Register</h2>
-    <h5>Please enter your desired username and password for your account below!</h5>
-	<form id="login_form" action="{{ url_for('register_verify') }}" method="post"> 
+	<h2>User Login</h2>
+	<form id="login_form" action="{{ url_for('login_verify') }}" method="post"> 
 		<h5 style="margin-bottom: 10px;">Username</h5>
 		<input id="username_input" type="text" name="username" placeholder="Username"/>
 		<h5 style="margin-bottom: 10px;">Password</h5>
 		<input id="password_input" type="password" name="password" placeholder="Password"/>
-		<h5 style="margin-bottom: 10px;">Type Password Again</h5>
-		<input id="password_input_2" type="password" name="password2" placeholder="Retype Password"/>
 		<button type="submit" name="action" value="login">Login</button>
+		<!--<br><button type="submit" name="action" value="forgot_password">Forgot Password?</button>
+		<input type="hidden" name="action" value="forgot_password">-->
 	</form>
 </body>
 {% endblock %}
