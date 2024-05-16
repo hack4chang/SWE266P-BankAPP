@@ -2,10 +2,12 @@
 <html lang="en">
     <header>
         <h1>Welcome to your bank account {{username}}</h1>
+        <h3> Your current balance is ${{balance}} </h3>
         <h2>Would you like to deposit or withdraw money?</h2>
         <br>
         <br>
         <br>
-        <button>Deposit</button>    <button>Withdraw</button>
+        <form action="deposit.html" method="post"><a href="deposit"><button class="button">Deposit</button></a>    <button>Withdraw</button></form>
     </header>
+    <a href="/">home</a>
 </html>
