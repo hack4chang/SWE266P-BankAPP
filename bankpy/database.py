@@ -1,6 +1,8 @@
 from flask import Flask, request, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from decimal import Decimal, getcontext
+getcontext().prec = 10
 
 db = SQLAlchemy()
 
@@ -34,5 +36,6 @@ class AccountBalance(db.Model):
         return password == self.password
 
     def update_balance(self, difference):
-        self.balance += difference
+        result = Decimal(str(self.balance)) + Decimal(str(difference))
+        self.balance = float(result)
 
