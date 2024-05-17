@@ -32,3 +32,7 @@ class AccountBalance(db.Model):
         """
         # return check_password_hash(self.password, password)
         return password == self.password
+
+    def update_balance(self, difference):
+        self.balance += difference
+

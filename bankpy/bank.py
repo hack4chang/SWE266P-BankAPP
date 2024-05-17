@@ -92,7 +92,39 @@ def create_app():
     @app.route('/<username>/dashboard/withdraw', methods=["GET", "POST"])
     def withdraw(username):
         balance = AccountBalance.query.filter_by(username=username).first().balance
-        return render_template('withdraw.html', user=username, balance=balance) 
+        return render_template('withdraw.html', username=username, balance=balance) 
+    
+    @app.route("/withdraw_verify/<username>", methods=["GET", "POST"])
+    def withdraw_verify(username):
+        withdraw_amount = int(request.form.get("withdraw_amount"))
+        input_username = str(request.form.get("username"))
+        print(withdraw_amount, input_username)
+        if input_username != username or withdraw_amount <= 0.0:
+            return '<h3>Invalid Input!</h3>', 400
+        user = AccountBalance.query.filter_by(username=username).first()
+        if user:
+            if withdraw_amount > user.balance:
+                return '<h3>The input amount is greater than your balance!</h3>', 400
+            user.update_balance(-withdraw_amount)
+            db.session.commit()
+        print("Updated Balance: ", str(AccountBalance.query.filter_by(username=username).first().balance))
+        return redirect(url_for('dashboard', username=username)) 
+
+
+    @app.route("/deposit_verify/<username>", methods=["GET", "POST"])
+    def deposit_verify(username):
+        deposit_amount = int(request.form.get("deposit_amount"))
+        input_username = str(request.form.get("username"))
+        print(deposit_amount, input_username)
+        if input_username != username or deposit_amount <= 0.0:
+            return '<h3>Invalid Input!</h3>', 400
+        user = AccountBalance.query.filter_by(username=username).first()
+        if user:
+            user.update_balance(+deposit_amount)
+            db.session.commit()
+        print("Updated Balance: ", str(AccountBalance.query.filter_by(username=username).first().balance))
+        return redirect(url_for('dashboard', username=username)) 
+
 
     @app.route('/logout', methods=["GET", "POST"])
     def logout():

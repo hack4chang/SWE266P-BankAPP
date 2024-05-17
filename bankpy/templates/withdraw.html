@@ -2,12 +2,11 @@
 {% block title %}Withdraw{% endblock %}
 {% block content %}
 <body>
-	<h4>Hi, {{user}}! Your current balance is ${{balance}}.</h4>
+	<h4>Hi {{username}}! Your current balance is ${{balance}}.</h4>
     <h4>How much would you like to withdraw?</h4>
-	<br>
     <br>
     <br>
-    <form action="deposit_success.html" method="post">
+    <form id="withdraw_form" action="{{ url_for('withdraw_verify', username=username) }}" method="post">
     	<label style="margin-bottom: 8px;">Withdraw Amount</label>
         <br>
 	    <input type="number" name="withdraw_amount" placeholder="Withdraw Amount"/>
@@ -15,7 +14,7 @@
     	<label style="margin-bottom: 8px;">Username</label>
         <br>
 	    <input type="text" name="username" placeholder="Username"/>
-    	<a href="deposit_success"><button type="submit" onclick="home()">Withdraw</button></a>
+		<button type="submit" name="action" value="withdraw" onclick="alert('Verifying!')">Withdraw</button>
     </form> 
 </body>
 {% endblock %}
