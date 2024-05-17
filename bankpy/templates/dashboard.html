@@ -2,21 +2,20 @@
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 <body>
-	<h4>Hi {{user}}! Welcome to your checking account dashboard!</p>
+	<h4>Hi {{username}}! Welcome to your checking account dashboard!</h4>
+    <h4>Your current balance: ${{balance}}.</h4>
 	<h5>Service Options: </h5>
     <nav>
         <ul>
             <li>
-				<!--<form id="login_form" action="{{ url_for('logout') }}" method="post">-->
-					<button type="submit" name="action" value="withdraw">Withdraw</button>
-				<!--</form>-->
+				<!--<button type="submit" name="action" value="withdraw">Withdraw</button>-->
 			</li>
             <li>
-				<!--<form id="login_form" action="{{ url_for('logout') }}" method="post">-->
+				<form id="withdraw_click" action="{{ url_for('deposit', username=username) }}" method="post">
 					<button type="submit" name="action" value="deposit">Deposit</button>
-				<!--</form>-->
+				</form>
             <li>
-				<form id="login_form" action="{{ url_for('logout') }}" method="post"> 
+				<form id="logout_click" action="{{ url_for('logout') }}" method="post"> 
 					<button type="submit" name="action" value="logout">Logout</button>
 				</form>
 			</li>
