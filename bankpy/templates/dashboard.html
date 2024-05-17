@@ -8,10 +8,12 @@
     <nav>
         <ul>
             <li>
-				<!--<button type="submit" name="action" value="withdraw">Withdraw</button>-->
+				<form id="withdraw_click" action="{{ url_for('withdraw', username=username) }}" method="post">
+					<button type="submit" name="action" value="withdraw">Withdraw</button>
+				</form>
 			</li>
             <li>
-				<form id="withdraw_click" action="{{ url_for('deposit', username=username) }}" method="post">
+				<form id="deposit_click" action="{{ url_for('deposit', username=username) }}" method="post">
 					<button type="submit" name="action" value="deposit">Deposit</button>
 				</form>
             <li>

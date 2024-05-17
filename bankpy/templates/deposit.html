@@ -2,20 +2,19 @@
 {% block title %}Deposit{% endblock %}
 {% block content %}
 <body>
-	<h4>Hi, {{user}}! Your current balance is ${{balance}}. </h3>
-    <h4>How much would you like to deposit?</h2>
-	<br>
+	<h4>Hi {{username}}! Your current balance is ${{balance}}.</h4>
+    <h4>How much would you like to deposit?</h4>
     <br>
     <br>
-    <form action="deposit_success.html" method="post">
-    	<label style="margin-bottom: 8px;">deposit amount</label>
+    <form id="deposit_form" action="{{ url_for('deposit_verify', username=username) }}" method="post">
+    	<label style="margin-bottom: 8px;">Deposit Amount</label>
         <br>
-	    <input type="number" name="deposit_amount" placeholder="deposit_amount"/>
+	    <input type="number" name="deposit_amount" placeholder="Deposit Amount"/>
         <br>
     	<label style="margin-bottom: 8px;">Username</label>
         <br>
-	    <input type="text" name="username" placeholder="username"/>
-    	<a href="deposit_success"><button type="submit" onclick="home()">Deposit</button></a>
+	    <input type="text" name="username" placeholder="Username"/>
+		<button type="submit" name="action" value="deposit" onclick="alert('Verifying!')">Deposit</button>
     </form> 
 </body>
 {% endblock %}

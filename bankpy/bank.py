@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from database import AccountBalance, db
+import re
 
 def create_app():
     app = Flask(__name__)
@@ -11,16 +12,6 @@ def create_app():
 
     with app.app_context():
         db.create_all()
-
-    """
-    @app.errorhandler(404)
-    def page_not_found(e):
-        return render_template('404.html'), 404
-
-    @app.errorhandler(500)
-    def internal_server_error(e):
-        return render_template('500.html'), 500
-    """
 
     @app.route('/')
     def home():
@@ -37,10 +28,11 @@ def create_app():
         print(message)
         return render_template('login.html', message=message)
 
-    @app.route('/dashboard', methods=["POST"])
-    def dashboard():
-        username = request.args.get('username')
-        balance = request.args.get('balance')
+    @app.route('/<username>/dashboard', methods=["GET", "POST"])
+    def dashboard(username):
+        print("In the dashboard - username: " + username)
+        balance = AccountBalance.query.filter_by(username=username).first().balance
+        print("In the dashboard - balance: " + str(balance))
         return render_template('dashboard.html', username=username, balance=balance) 
 
     @app.route('/login_verify', methods=["POST"])
@@ -53,7 +45,7 @@ def create_app():
         else:
             user = AccountBalance.query.filter_by(username=username).first()
             if user and user.check_password(password):
-                return redirect(url_for('dashboard', username=username, balance=user.balance), code=307) 
+                return redirect(url_for('dashboard', username=username)) 
             else:
                 return '<h3>User Not Found or Password Incorrect! Please Login Again!</h3>'
 
@@ -62,8 +54,14 @@ def create_app():
         username = request.form.get("username")
         password = request.form.get("password")
         password2 = request.form.get("password2")
-        if not username or not password or not password2 or password != password2:
+
+        command_pattern = r'[^a-zA-Z0-9_.-]'  
+        ip_pattern = r'(\d{1,3}\.){3}\d{1,3}'
+
+        if re.search(command_pattern, username) or re.fullmatch(ip_pattern, username) or \
+           not username or not password or not password2 or password != password2:
             return '<h3>Invalid Input or Invalid Account ID or Invalid Password!</h3>'
+
         try:
             print(f"[Register Request] Username - {username}; Password - {password}")
             new_account = AccountBalance(username=username, password=password, balance=19.99)
@@ -86,15 +84,47 @@ def create_app():
         #     return redirect(url_for('dashboard', username=session.get('id')))
         return render_template('register.html')
 
-    @app.route('/dashboard/<username>/deposit', methods=["GET", "POST"])
-    def deposit(username, balance):
-        return render_template('deposit.html', user=username, balance=balance) 
+    @app.route('/<username>/dashboard/deposit', methods=["GET", "POST"])
+    def deposit(username):
+        balance = AccountBalance.query.filter_by(username=username).first().balance
+        return render_template('deposit.html', username=username, balance=balance) 
 
-    """
-    @app.route('/dashboard/<username>/withdraw', methods=["GET", "POST"])
-    def withdraw(username, balance):
-        return render_template('withdraw.html', user=username, balance=balance) 
-    """
+    @app.route('/<username>/dashboard/withdraw', methods=["GET", "POST"])
+    def withdraw(username):
+        balance = AccountBalance.query.filter_by(username=username).first().balance
+        return render_template('withdraw.html', username=username, balance=balance) 
+    
+    @app.route("/withdraw_verify/<username>", methods=["GET", "POST"])
+    def withdraw_verify(username):
+        withdraw_amount = int(request.form.get("withdraw_amount"))
+        input_username = str(request.form.get("username"))
+        print(withdraw_amount, input_username)
+        if input_username != username or withdraw_amount <= 0.0:
+            return '<h3>Invalid Input!</h3>', 400
+        user = AccountBalance.query.filter_by(username=username).first()
+        if user:
+            if withdraw_amount > user.balance:
+                return '<h3>The input amount is greater than your balance!</h3>', 400
+            user.update_balance(-withdraw_amount)
+            db.session.commit()
+        print("Updated Balance: ", str(AccountBalance.query.filter_by(username=username).first().balance))
+        return redirect(url_for('dashboard', username=username)) 
+
+
+    @app.route("/deposit_verify/<username>", methods=["GET", "POST"])
+    def deposit_verify(username):
+        deposit_amount = int(request.form.get("deposit_amount"))
+        input_username = str(request.form.get("username"))
+        print(deposit_amount, input_username)
+        if input_username != username or deposit_amount <= 0.0:
+            return '<h3>Invalid Input!</h3>', 400
+        user = AccountBalance.query.filter_by(username=username).first()
+        if user:
+            user.update_balance(+deposit_amount)
+            db.session.commit()
+        print("Updated Balance: ", str(AccountBalance.query.filter_by(username=username).first().balance))
+        return redirect(url_for('dashboard', username=username)) 
+
 
     @app.route('/logout', methods=["GET", "POST"])
     def logout():
