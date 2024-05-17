@@ -2,9 +2,11 @@
 block content %}
 <body>
   <h2>User Register</h2>
-  <h5>
-    Please enter your desired username and password for your account below!
-  </h5>
+  <h5>Create username and password for your account below!</h5>
+  <h7 style="font-size: 14px; margin-bottom: 10px; margin-bottom: 20 px">
+    Password can only contain understores, dots, digits and lowercase
+    letters.</h7
+  >
 
   <!-- Categories include warning, success and danger. These can be set in the python script with flash command. -->
   <div class="container">
@@ -48,7 +50,7 @@ block content %}
       placeholder="Password"
     />
     <br />
-    <h5 style="margin-bottom: 10px; text-align: left">Type Password Again</h5>
+    <h5 style="margin-bottom: 10px; text-align: left">Confirm Password</h5>
     <input
       style="text-align: left; float: left; margin-bottom: 40px"
       id="password_input_2"

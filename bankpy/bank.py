@@ -67,7 +67,7 @@ def create_app():
             password = request.form.get("password")
             password2 = request.form.get("password2")
             if not username or not password or not password2 or password != password2:
-                flash('Invalid Input or Invalid Account ID or Invalid Password!')
+                flash('Invalid Input or Invalid Account ID or Invalid Password!', "warning")
                 return redirect(request.url)
         
             try:
@@ -98,14 +98,18 @@ def create_app():
         return render_template('register.html')
 
 
+    #check password requirements based on regex and length
+    # throws exception 
     def PasswordUsernameRequirements(password, username):
         command_pattern = r'[^a-zA-Z0-9_.-]'  
         ip_pattern = r'(\d{1,3}\.){3}\d{1,3}'
+
+        # restricted to underscores, hyphens, dots, digits, and lowercase alphabetical characters
+        command_pattern2 = r'[a-z0-9_.-]' 
+        
         if (re.search(command_pattern, username) or re.fullmatch(ip_pattern, username)):
             raise Exception("Invalid username detected.")
-
-         #check password requirements based on regex and length
-        elif(not re.search(command_pattern, password)):
+        elif(not re.search(command_pattern2, password)):
            raise Exception("Improper Password characters detected.")
         elif(len(password) == 0 or len(password) > 127):
            raise Exception("Improper Password length detected.")
