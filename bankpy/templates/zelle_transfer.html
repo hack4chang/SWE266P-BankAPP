@@ -39,7 +39,7 @@
                     <tr>
                         <td>{{record.sender}}</td>
                         <td>{{record.amount}}</td>
-                        <td>{{record.memo}}</td>
+                        <td>{{record.memo | safe }}</td>
                     </tr>
                 {% endfor %}
             {% endif %}
