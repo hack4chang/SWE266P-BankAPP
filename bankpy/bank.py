@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
-from database import AccountBalance, db
+from database import AccountBalance, ZelleHistory, db
 import re
 
 def create_app():
@@ -139,10 +139,12 @@ def create_app():
         withdraw_amount = int(request.form.get("withdraw_amount"))
         input_username = str(request.form.get("username")) # for verification
         print(withdraw_amount, input_username)
+
         if input_username != username:
             return '<h3>Invalid Input: Username Verification Failed!</h3>', 400
         if withdraw_amount <= 0.0:
             return '<h3>Invalid Input: Withdraw Amount Error!</h3>', 400
+        
         user = AccountBalance.query.filter_by(username=username).first()
         if user:
             if withdraw_amount > user.balance:
@@ -167,6 +169,43 @@ def create_app():
             user.update_balance(+deposit_amount)
             db.session.commit()
         print("Updated Balance: ", str(AccountBalance.query.filter_by(username=username).first().balance))
+        return redirect(url_for('dashboard', username=username)) 
+
+    @app.route('/<username>/dashboard/zelle', methods=["POST"])
+    def zelle(username):
+        balance = AccountBalance.query.filter_by(username=username).first().balance
+        history = []
+        try:
+            history = ZelleHistory.query.filter_by(receiver=username).all()
+        except Exception as e:
+            print(e)
+
+        return render_template('zelle_transfer.html', username=username, balance=balance, history=history) 
+        
+    @app.route('/zelle_verify/<username>/', methods=["POST"])
+    def zelle_verify(username):
+        receiver = request.form.get('receiver')
+        amount = round(float(request.form.get('amount')), 2)
+        memo = request.form.get('memo')
+        balance = AccountBalance.query.filter_by(username=username).first().balance
+        receiver_acc = AccountBalance.query.filter_by(username=receiver).first()
+        
+        user_acc = AccountBalance.query.filter_by(username=username).first()
+
+        if receiver == username or not receiver_acc:
+            return '<h3>Invalid Input: Invalid Receiver!</h3>', 400
+        elif amount > balance or amount <= 0.0:
+            return '<h3>Invalid Input: Invalid Amount!</h3>', 400
+        elif len(memo) > 200:
+            return '<h3>Invalid Input: Memo characters exceed 200!</h3>', 400
+
+        receiver_acc.update_balance(amount)
+        user_acc.update_balance(-amount)
+
+        new_record = ZelleHistory(username, receiver, amount, memo)
+        db.session.add(new_record)
+        db.session.commit()
+        
         return redirect(url_for('dashboard', username=username)) 
 
 
