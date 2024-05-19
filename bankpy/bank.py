@@ -84,13 +84,13 @@ def create_app():
             except Exception as e:
                 db.session.rollback()
                 print(f"Error occurred: {e}")
-                if str(e) == "UNIQUE constraint failed":
+                if "UNIQUE constraint failed" in str(e):
                     flash("Username Exist! Please login or register with another name!", "warning")
-                elif str(e) == "Improper Password characters detected.":
+                elif "Improper Password characters detected." in str(e):
                     flash("Invalid Password! Improper Characters.", "warning")
-                elif str(e) == "Improper Password length detected.":
+                elif "Improper Password length detected." in str(e):
                     flash("Improper Password length detected. Must be greater than 0 characters and less than 127 characters.", "warning")
-                elif str(e) == "Invalid username detected.":
+                elif "Invalid username detected." in str(e):
                     flash("Invalid username detected.", "warning")
                 else:
                     flash("Invalid Input or Invalid Account ID or Invalid Password!", "warning")
