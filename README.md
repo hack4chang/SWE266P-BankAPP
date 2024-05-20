@@ -29,4 +29,4 @@ cd bankpy
 ```
 python3 bank.py
 ```
-4. Open your browser and fetch the page: [http://127.0.0.1:30678](http://127.0.0.1:30678).
+4. Open your browser and fetch the page: [http://127.0.0.1:5000](http://127.0.0.1:5000).
