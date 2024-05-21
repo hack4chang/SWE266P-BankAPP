@@ -51,7 +51,7 @@ def create_app():
         password = request.form.get("password")
         print("Username - " + username + "; Password - " + password)
         if not username or not password:
-            return '<h3>Invalid Input or Invalid Account ID or Invalid Password!</h3>'
+            return render_template('invalid_input.html')
         else:
             user = AccountBalance.query.filter_by(username=username).first()
             if user and user.check_password(password):
@@ -66,6 +66,7 @@ def create_app():
             username = request.form.get("username")
             password = request.form.get("password")
             password2 = request.form.get("password2")
+            initial_balance = request.form.get("initial_balance")
             if not username or not password or not password2 or password != password2:
                 flash('Invalid Input or Invalid Account ID or Invalid Password!', "warning")
                 return redirect(request.url)
@@ -75,7 +76,7 @@ def create_app():
                 # password check would be around here (throws exception if issue found)
                 PasswordUsernameRequirements(password, username)
 
-                new_account = AccountBalance(username=username, password=password, balance=19.99)
+                new_account = AccountBalance(username=username, password=password, balance=float(initial_balance))
                 db.session.add(new_account)
                 db.session.commit()
                 print(f"[Request Success]")
@@ -137,12 +138,6 @@ def create_app():
     @app.route("/withdraw_verify/<username>", methods=["GET", "POST"])
     def withdraw_verify(username):
         withdraw_amount = int(request.form.get("withdraw_amount"))
-        input_username = str(request.form.get("username")) # for verification
-        print(withdraw_amount, input_username)
-        if input_username != username:
-            return '<h3>Invalid Input: Username Verification Failed!</h3>', 400
-        if withdraw_amount <= 0.0:
-            return '<h3>Invalid Input: Withdraw Amount Error!</h3>', 400
         user = AccountBalance.query.filter_by(username=username).first()
         if user:
             if withdraw_amount > user.balance:
@@ -156,12 +151,6 @@ def create_app():
     @app.route("/deposit_verify/<username>", methods=["GET", "POST"])
     def deposit_verify(username):
         deposit_amount = int(request.form.get("deposit_amount"))
-        input_username = str(request.form.get("username")) # for verification
-        print(deposit_amount, input_username)
-        if input_username != username:
-            return '<h3>Invalid Input: Username Verification Failed!</h3>', 400
-        if deposit_amount <= 0.0:
-            return '<h3>Invalid Input: Deposit Amount Error!</h3>', 400
         user = AccountBalance.query.filter_by(username=username).first()
         if user:
             user.update_balance(+deposit_amount)
