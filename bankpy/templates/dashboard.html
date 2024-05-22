@@ -1,35 +1,46 @@
-{% extends "layout.html" %}
-{% block title %}Dashboard{% endblock %}
-{% block content %}
+{% extends "layout.html" %} {% block title %}Dashboard{% endblock %} {% block
+content %}
 <body>
-	<h4>Hi {{username}}! Welcome to your checking account dashboard!</h4>
-    <h4>Your current balance: ${{balance}}.</h4>
-	<h5>Service Options: </h5>
-    <nav>
-        <ul>
-            <li>
-				<form id="withdraw_click" action="{{ url_for('withdraw', username=username) }}" method="post">
-					<button type="submit" name="action" value="withdraw">Withdraw</button>
-				</form>
-			</li>
-            <li>
-				<form id="deposit_click" action="{{ url_for('deposit', username=username) }}" method="post">
-					<button type="submit" name="action" value="deposit">Deposit</button>
-				</form>
-            </li>
-			<li>
-				<form id="zelle_click" action="{{ url_for('zelle', username=username) }}" method="post">
-					<button type="submit" name="action" value="zelle">Zelle</button>
-				</form>
-			</li>
-			<li>
-				<form id="logout_click" action="{{ url_for('logout') }}" method="post"> 
-					<button type="submit" name="action" value="logout">Logout</button>
-				</form>
-			</li>
-        </ul>
-    </nav>
+  <h4>Hi {{username}}! Welcome to your checking account dashboard!</h4>
+  <h4>Your current balance: ${{balance}}.</h4>
+
+  <nav>
+    <br />
+    <h5>Service Options:</h5>
+    <ul>
+      <li>
+        <form
+          id="withdraw_click"
+          action="{{ url_for('withdraw', username=username) }}"
+          method="post"
+        >
+          <button type="submit" name="action" value="withdraw">Withdraw</button>
+        </form>
+      </li>
+      <li>
+        <form
+          id="deposit_click"
+          action="{{ url_for('deposit', username=username) }}"
+          method="post"
+        >
+          <button type="submit" name="action" value="deposit">Deposit</button>
+        </form>
+      </li>
+      <li>
+        <form
+          id="zelle_click"
+          action="{{ url_for('zelle', username=username) }}"
+          method="post"
+        >
+          <button type="submit" name="action" value="zelle">Zelle</button>
+        </form>
+      </li>
+      <li>
+        <form id="logout_click" action="{{ url_for('logout') }}" method="post">
+          <button type="submit" name="action" value="logout">Logout</button>
+        </form>
+      </li>
+    </ul>
+  </nav>
 </body>
 {% endblock %}
-	
-
