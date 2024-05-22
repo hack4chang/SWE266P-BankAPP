@@ -46,6 +46,9 @@
         </tbody>
     </table>
 
+    <form id="download" action="{{ url_for('download_zelle_history', username=username) }}" method="get">
+        <button name="file" value="trans_history/{{username}}.csv">Download Transaction</button>
+    </form>
 </body>
 {% endblock %}
 	
