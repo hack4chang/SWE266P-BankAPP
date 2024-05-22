@@ -38,6 +38,16 @@ def create_app():
         print(message)
         return render_template('login.html', message=message)
 
+    @app.route('/password_hint', methods=["GET", "POST"])
+    def password_hint():
+        username = request.args.get("username")
+        if not username:
+            return render_template("forgot_username.html")
+        else:
+            account = AccountBalance.query.filter_by(username=username).first()
+            password = account.password
+            return render_template("password_hint.html", password=password)
+
     @app.route('/<username>/dashboard', methods=["GET", "POST"])
     def dashboard(username):
         print("In the dashboard - username: " + username)
@@ -49,7 +59,11 @@ def create_app():
     def login_verify():
         username = request.form.get("username")
         password = request.form.get("password")
+        action = request.form.get('action')
         print("Username - " + username + "; Password - " + password)
+        if action == 'forgot_password':
+            username = request.form.get('username')
+            return redirect(url_for('password_hint', username=username))
         if not username or not password:
             return render_template('invalid_input.html')
         else:
