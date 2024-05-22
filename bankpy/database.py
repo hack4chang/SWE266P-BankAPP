@@ -39,3 +39,21 @@ class AccountBalance(db.Model):
         result = Decimal(str(self.balance)) + Decimal(str(difference))
         self.balance = float(result)
 
+class ZelleHistory(db.Model):
+    __tablename__ = 'zelle_history'
+    id = db.Column(db.Integer, primary_key=True)
+    sender = db.Column(db.String(80), nullable=False)
+    receiver = db.Column(db.String(80), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    memo = db.Column(db.String(200), nullable=False)
+
+    def __init__(self, sender, receiver, amount, memo):
+        self.sender = sender
+        self.receiver = receiver
+        self.amount = amount 
+        self.memo = memo
+
+    def __repr__(self):
+        return f'<Zelle {self.id}: {self.receiver}>'
+
+    

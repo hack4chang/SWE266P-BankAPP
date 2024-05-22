@@ -1,14 +1,19 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, session
+from flask import Flask, request, render_template, redirect, url_for, flash, session, send_file
 from flask_sqlalchemy import SQLAlchemy
 from database import AccountBalance, ZelleHistory, db
-import re
+from uuid import uuid4
+from datetime import timedelta
+import re, os, csv
 
 def create_app():
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.secret_key = '123'
+    app.secret_key = "secret_key_00000"
     db.init_app(app)
+    os.makedirs("trans_history", exist_ok=True)
+    app.permanent_session_lifetime = timedelta(minutes=10)
+    
 
     with app.app_context():
         db.create_all()
@@ -25,31 +30,24 @@ def create_app():
 
     @app.route('/')
     def home():
-        # print(session.get('id'))
-        # if session.get('id') != None:
-        #    return redirect(url_for('dashboard', username=session.get('id')))
+        if session.get('user') != None:
+           return redirect(url_for('dashboard', username=session.get('user')))
         return render_template('home.html')
 
     @app.route('/login', methods=["GET", "POST"])
     def login():
-        # if session.get('id') != None:
-        #     return redirect(url_for('dashboard', username=session.get('id')))
+        if session.get('user') != None:
+            return redirect(url_for('dashboard', username=session.get('user')))
         message = request.args.get('message')
         print(message)
         return render_template('login.html', message=message)
 
-    @app.route('/password_hint', methods=["GET", "POST"])
-    def password_hint():
-        username = request.args.get("username")
-        if not username:
-            return render_template("forgot_username.html")
-        else:
-            account = AccountBalance.query.filter_by(username=username).first()
-            password = account.password
-            return render_template("password_hint.html", password=password)
-
     @app.route('/<username>/dashboard', methods=["GET", "POST"])
     def dashboard(username):
+        if not session.get('user'):
+            return redirect(url_for('login'))
+        if username != session.get('user'):
+            return redirect(url_for('dashboard', username=session.get('user'))) 
         print("In the dashboard - username: " + username)
         balance = AccountBalance.query.filter_by(username=username).first().balance
         print("In the dashboard - balance: " + str(balance))
@@ -59,16 +57,15 @@ def create_app():
     def login_verify():
         username = request.form.get("username")
         password = request.form.get("password")
-        action = request.form.get('action')
         print("Username - " + username + "; Password - " + password)
-        if action == 'forgot_password':
-            username = request.form.get('username')
-            return redirect(url_for('password_hint', username=username))
         if not username or not password:
-            return render_template('invalid_input.html')
+            return '<h3>Invalid Input or Invalid Account ID or Invalid Password!</h3>'
         else:
             user = AccountBalance.query.filter_by(username=username).first()
             if user and user.check_password(password):
+                session['user'] = username
+                session.permanent = True
+                session.modified = True
                 return redirect(url_for('dashboard', username=username)) 
             else:
                 return '<h3>User Not Found or Password Incorrect! Please Login Again!</h3>'
@@ -80,7 +77,6 @@ def create_app():
             username = request.form.get("username")
             password = request.form.get("password")
             password2 = request.form.get("password2")
-            initial_balance = request.form.get("initial_balance")
             if not username or not password or not password2 or password != password2:
                 flash('Invalid Input or Invalid Account ID or Invalid Password!', "warning")
                 return redirect(request.url)
@@ -90,7 +86,7 @@ def create_app():
                 # password check would be around here (throws exception if issue found)
                 PasswordUsernameRequirements(password, username)
 
-                new_account = AccountBalance(username=username, password=password, balance=float(initial_balance))
+                new_account = AccountBalance(username=username, password=password, balance=19.99)
                 db.session.add(new_account)
                 db.session.commit()
                 print(f"[Request Success]")
@@ -141,16 +137,26 @@ def create_app():
 
     @app.route('/<username>/dashboard/deposit', methods=["GET", "POST"])
     def deposit(username):
+        if not session.get('user'):
+            return redirect(url_for('login'))
+        if username != session.get('user'):
+            return redirect(url_for('deposit', username=session.get('user'))) 
         balance = AccountBalance.query.filter_by(username=username).first().balance
         return render_template('deposit.html', username=username, balance=balance) 
 
     @app.route('/<username>/dashboard/withdraw', methods=["GET", "POST"])
     def withdraw(username):
+        if not session.get('user'):
+            return redirect(url_for('login'))
+        if username != session.get('user'):
+            return redirect(url_for('withdraw', username=session.get('user'))) 
         balance = AccountBalance.query.filter_by(username=username).first().balance
         return render_template('withdraw.html', username=username, balance=balance) 
     
     @app.route("/withdraw_verify/<username>", methods=["GET", "POST"])
     def withdraw_verify(username):
+        if username != session.get('user'):
+            return redirect(url_for('withdraw_verify', username=session.get('user'))) 
         withdraw_amount = int(request.form.get("withdraw_amount"))
         input_username = str(request.form.get("username")) # for verification
         print(withdraw_amount, input_username)
@@ -172,7 +178,15 @@ def create_app():
 
     @app.route("/deposit_verify/<username>", methods=["GET", "POST"])
     def deposit_verify(username):
+        if username != session.get('user'):
+            return redirect(url_for('deposit_verify', username=session.get('user'))) 
         deposit_amount = int(request.form.get("deposit_amount"))
+        input_username = str(request.form.get("username")) # for verification
+        print(deposit_amount, input_username)
+        if input_username != username:
+            return '<h3>Invalid Input: Username Verification Failed!</h3>', 400
+        if deposit_amount <= 0.0:
+            return '<h3>Invalid Input: Deposit Amount Error!</h3>', 400
         user = AccountBalance.query.filter_by(username=username).first()
         if user:
             user.update_balance(+deposit_amount)
@@ -182,10 +196,25 @@ def create_app():
 
     @app.route('/<username>/dashboard/zelle', methods=["POST"])
     def zelle(username):
+        if not session.get('user'):
+            return redirect(url_for('login'))
+        if username != session.get('user'):
+            return redirect(url_for('zelle', username=session.get('user'))) 
         balance = AccountBalance.query.filter_by(username=username).first().balance
         history = []
         try:
             history = ZelleHistory.query.filter_by(receiver=username).all()
+            file_path = os.path.join("trans_history", f'{username}.csv')
+            file_content = [['Sender', 'Amount', 'Memo']]
+            
+            if history:
+                for trans in history:
+                    file_content.append([trans.sender, trans.amount, trans.memo])
+            
+            with open(file_path, mode='w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerows(file_content)
+
         except Exception as e:
             print(e)
 
@@ -193,6 +222,8 @@ def create_app():
         
     @app.route('/zelle_verify/<username>/', methods=["POST"])
     def zelle_verify(username):
+        if username != session.get('user'):
+            return redirect(url_for('zelle_verify', username=session.get('user'))) 
         receiver = request.form.get('receiver')
         amount = round(float(request.form.get('amount')), 2)
         memo = request.form.get('memo')
@@ -215,12 +246,18 @@ def create_app():
         db.session.add(new_record)
         db.session.commit()
         
-        return redirect(url_for('dashboard', username=username)) 
+        return redirect(url_for('dashboard', username=username))
 
-
+    @app.route('/<username>/zelle/download_zelle_history', methods=["POST"])
+    def download_zelle_history(username):
+        try:
+            return send_file(f"trans_history/{username}.csv")
+        except Exception as e:
+            return render_template('404.html', username=username)
+        
     @app.route('/logout', methods=["GET", "POST"])
     def logout():
-        # session.pop('id', None)
+        session.pop('user', None)
         return redirect(url_for('home'))
 
     return app

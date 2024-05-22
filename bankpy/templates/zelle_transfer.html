@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% block title %}Zelle{% endblock %}
+{% block content %}
+<body>
+	<h4>Hi {{username}}! Your current balance is ${{balance}}.</h4>
+    <br>
+    <br>
+    <form id="transfer_form" action="{{ url_for('zelle_verify', username=username) }}" method="post">
+    	<label style="margin-bottom: 8px;">Transfer To</label>
+        <br>
+	    <input type="text" name="receiver" placeholder="Receiver" required/>
+        <br>
+    	<label style="margin-bottom: 8px;">Transfer Amount</label>
+        <br>
+	    <input type="number" name="amount" placeholder="Amount"  min="0" required/>
+        <br>
+    	<label style="margin-bottom: 8px;">Memo</label>
+        <br>
+	    <textarea type="text" name="memo" placeholder="Memo (Maximum 200 Characters)"></textarea>
+        <br>
+		<button type="submit" name="action" value="zelle" onclick="alert('Verifying!')">Transfer</button>
+    </form>
+    <br>
+    <a href="{{url_for('dashboard', username=username)}}"> > return</a>
+    <br><br>
+
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Sender</th>
+                <th>Amount</th>
+                <th>Memo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if history %}
+                {% for record in history %}
+                    <tr>
+                        <td>{{record.sender}}</td>
+                        <td>{{record.amount}}</td>
+                        <td>{{record.memo}}</td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
+        </tbody>
+    </table>
+
+</body>
+{% endblock %}
+	
+
