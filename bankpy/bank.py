@@ -229,7 +229,7 @@ def create_app():
         
         return redirect(url_for('dashboard', username=username)) 
 
-    @app.route('/<username>/zelle/download_history', methods=["GET"])
+    @app.route('/<username>/zelle/download_zelle_history', methods=["GET"])
     def download_zelle_history(username):
         file = request.args.get('file')
         try:
