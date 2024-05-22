@@ -1,7 +1,7 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, session
+from flask import Flask, request, render_template, redirect, url_for, flash, session, send_file
 from flask_sqlalchemy import SQLAlchemy
 from database import AccountBalance, ZelleHistory, db
-import re
+import re, os, csv
 
 def create_app():
     app = Flask(__name__)
@@ -9,6 +9,7 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.secret_key = '123'
     db.init_app(app)
+    os.makedirs("trans_history", exist_ok=True)
 
     with app.app_context():
         db.create_all()
@@ -186,6 +187,17 @@ def create_app():
         history = []
         try:
             history = ZelleHistory.query.filter_by(receiver=username).all()
+            file_path = os.path.join("trans_history", f'{username}.csv')
+            file_content = [['Sender', 'Amount', 'Memo']]
+            
+            if history:
+                for trans in history:
+                    file_content.append([trans.sender, trans.amount, trans.memo])
+            
+            with open(file_path, mode='w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerows(file_content)
+
         except Exception as e:
             print(e)
 
@@ -217,7 +229,14 @@ def create_app():
         
         return redirect(url_for('dashboard', username=username)) 
 
-
+    @app.route('/<username>/zelle/download_history', methods=["GET"])
+    def download_zelle_history(username):
+        file = request.args.get('file')
+        try:
+            return send_file(file)
+        except Exception as e:
+            return render_template('404.html', username=username)
+        
     @app.route('/logout', methods=["GET", "POST"])
     def logout():
         # session.pop('id', None)

@@ -132,3 +132,4 @@ dist
 266env
 bankpy/instance
 bankpy/__pycache__
+bankpy/trans_history
