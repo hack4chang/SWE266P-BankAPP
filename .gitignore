@@ -133,3 +133,4 @@ dist
 bankpy/instance
 bankpy/__pycache__
 bankpy/trans_history
+bankpy/bank_secure.py
