@@ -153,7 +153,7 @@ def create_app():
     
     @app.route("/withdraw_verify/<username>", methods=["GET", "POST"])
     def withdraw_verify(username):
-        withdraw_amount = int(request.form.get("withdraw_amount"))
+        withdraw_amount = float(request.form.get("withdraw_amount"))
         user = AccountBalance.query.filter_by(username=username).first()
         if user:
             if withdraw_amount > user.balance:
@@ -166,7 +166,7 @@ def create_app():
 
     @app.route("/deposit_verify/<username>", methods=["GET", "POST"])
     def deposit_verify(username):
-        deposit_amount = int(request.form.get("deposit_amount"))
+        deposit_amount = float(request.form.get("deposit_amount"))
         user = AccountBalance.query.filter_by(username=username).first()
         if user:
             user.update_balance(+deposit_amount)
