@@ -57,6 +57,8 @@ class ZelleHistory(db.Model):
         return f'<Zelle {self.id}: {self.receiver}>'
 
 class AccountBalanceSnapshot:
+    '''This is not the most optimal way to implement the Entity Snapshot pattern
+    but it is what works in Python. There is no built in way to prevent inheritance.'''
     account = None
     def __init__(self, AccountBalance):
         self.account = AccountBalance
@@ -65,7 +67,7 @@ class AccountBalanceSnapshot:
         return self.account.balance
 
 class BankService:
-
+    '''Domain service class for our Insecure Bank App for SWE 266'''
     def __init__(self) -> None:
         pass
 
