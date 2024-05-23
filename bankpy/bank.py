@@ -45,9 +45,9 @@ def create_app():
         print("In the dashboard - username: " + username)
         user = AccountBalance.query.filter_by(username=username).first()
         if not user:
-            flash("user does not exist", "warning")
+            flash("Warning: User does not exist.", "warning")
             return redirect(url_for("login"))
-        balance = user.balance
+        balance = "%.2f" % user.balance
         print("In the dashboard - balance: " + str(balance))
         return render_template('dashboard.html', username=username, balance=balance) 
 
@@ -98,6 +98,8 @@ def create_app():
             password = request.form.get("password")
             password2 = request.form.get("password2")
             initial_balance = request.form.get("initial_balance")
+            if(initial_balance == ""):
+                initial_balance = 0
             if not username or not password or not password2 or password != password2:
                 flash('Invalid Input or Invalid Account ID or Invalid Password!', "warning")
                 return redirect(request.url)
