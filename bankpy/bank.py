@@ -169,11 +169,12 @@ def create_app():
         snapshot = AccountBalanceSnapshot(user)
         service = BankService()
         service.withdraw(snapshot, withdraw_amount)
-        if user:
-            if withdraw_amount > user.balance:
-                return '<h3>The input amount is greater than your balance!</h3>', 400
-            #user.update_balance(-withdraw_amount)
-            db.session.commit()
+        # if user:
+        #     if withdraw_amount > user.balance:
+        #         return '<h3>The input amount is greater than your balance!</h3>', 400
+            # user.update_balance(-withdraw_amount)
+            # db.session.commit()
+        db.session.commit()
         print("Updated Balance: ", str(AccountBalance.query.filter_by(username=username).first().balance))
         return redirect(url_for('dashboard', username=username)) 
 

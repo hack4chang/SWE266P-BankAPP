@@ -72,9 +72,13 @@ class BankService:
         pass
 
     def deposit(snapshot, toDeposit):
-        snapshot.account.balance += toDeposit
+        # snapshot.account.balance += toDeposit
+        balance = snapshot.account.balance
+        snapshot.account.balance = Decimal(str(balance)) + Decimal(str(toDeposit))
         return snapshot
 
     def withdraw(self, snapshot, toWithdraw):
-        snapshot.account.balance -= toWithdraw
+        # snapshot.account.balance -= toWithdraw
+        balance = snapshot.account.balance
+        snapshot.account.balance = Decimal(str(balance)) - Decimal(str(toWithdraw))
         return snapshot
