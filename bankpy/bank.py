@@ -20,15 +20,10 @@ def create_app():
 
     @app.route('/')
     def home():
-        # print(session.get('id'))
-        # if session.get('id') != None:
-        #    return redirect(url_for('dashboard', username=session.get('id')))
         return render_template('home.html')
 
     @app.route('/login', methods=["GET", "POST"])
     def login():
-        # if session.get('id') != None:
-        #     return redirect(url_for('dashboard', username=session.get('id')))
         message = request.args.get('message')
         print(message)
         return render_template('login.html', message=message)
@@ -48,40 +43,26 @@ def create_app():
     @app.route('/login_verify', methods=["GET", "POST"])
     def login_verify():
         print("check")
-        pw_attempts = 3
         if request.method == "POST":
             username = request.form.get("username")
             password = request.form.get("password")
             action = request.form.get('action')
             print("Username - " + username + "; Password - " + password)
-            if action == 'forgot_password':
-                if not username:
-                    meesage = "Please enter a username to find the forgotten password!"
-                    flash(meesage, "warning")
-                    return redirect(request.url)
-                else:
-                    username = request.form.get('username')
-                    account = AccountBalance.query.filter_by(username=username).first()
-                    password = account.password
-                    meesage = 'The password for ' + username + ' is: ' + password
-                    flash(meesage, "warning")
-                    return redirect(request.url)
-            if not username or not password:
-                pw_attempts = pw_attempts - 1
-                print("PASSWORD ATTEMPTS IS", pw_attempts)
-                if pw_attempts == 0:
-                    AccountBalance.query.delete()
-                meesage = "Invalid Input or Invalid Account ID or Invalid Password!"
+
+            user = AccountBalance.query.filter_by(username=username).first()
+            if user and user.check_password(password):
+                return redirect(url_for('dashboard', username=username)) 
+            elif user and action == 'forgot_password':
+                username = request.form.get('username')
+                account = AccountBalance.query.filter_by(username=username).first()
+                password = account.password
+                meesage = 'The password for ' + username + ' is: ' + password
                 flash(meesage, "warning")
                 return redirect(request.url)
             else:
-                user = AccountBalance.query.filter_by(username=username).first()
-                if user and user.check_password(password):
-                    return redirect(url_for('dashboard', username=username)) 
-                else:
-                    meesage = "User not found or password incorrect! Please login again!"
-                    flash(meesage, 'warning')
-                    return redirect(request.url)
+                meesage = "User not found or password incorrect! Please login again!"
+                flash(meesage, 'warning')
+                return redirect(request.url)
         return render_template('login.html')
 
     @app.route('/register_verify', methods=["GET", "POST"])
@@ -146,8 +127,6 @@ def create_app():
         
     @app.route('/register', methods=["GET", "POST"])
     def register():
-        # if session.get('id') != None:
-        #     return redirect(url_for('dashboard', username=session.get('id')))
         return render_template('register.html')
 
     @app.route('/<username>/dashboard/deposit', methods=["GET", "POST"])
@@ -160,13 +139,13 @@ def create_app():
         return render_template('deposit.html', username=username, balance=balance) 
 
     @app.route('/<username>/dashboard/withdraw', methods=["GET", "POST"])
-    def withdraw(username, message=None):
+    def withdraw(username):
         user = AccountBalance.query.filter_by(username=username).first()
         if not user:
             flash("user does not exist", "warning")
             return redirect(url_for("login"))
         balance = user.balance
-        return render_template('withdraw.html', username=username, balance=balance, message=message) 
+        return render_template('withdraw.html', username=username, balance=balance) 
     
     @app.route("/withdraw_verify/<username>", methods=["GET", "POST"])
     def withdraw_verify(username):
@@ -179,11 +158,6 @@ def create_app():
         snapshot = AccountBalanceSnapshot(user)
         service = BankService()
         service.withdraw(snapshot, withdraw_amount)
-        # if user:
-        #     if withdraw_amount > user.balance:
-        #         return '<h3>The input amount is greater than your balance!</h3>', 400
-            # user.update_balance(-withdraw_amount)
-            # db.session.commit()
         db.session.commit()
         print("Updated Balance: ", str(AccountBalance.query.filter_by(username=username).first().balance))
         return redirect(url_for('dashboard', username=username)) 
@@ -194,7 +168,7 @@ def create_app():
         entered_amount = request.form.get("deposit_amount")
         if not entered_amount:
             flash("Please enter amount to deposit", "warning")
-            return redirect(request.url)
+            return redirect(url_for("deposit", username=username))
         deposit_amount = float(entered_amount)
         user = AccountBalance.query.filter_by(username=username).first()
         if user:
@@ -265,7 +239,6 @@ def create_app():
         
     @app.route('/logout', methods=["GET", "POST"])
     def logout():
-        # session.pop('id', None)
         return redirect(url_for('home'))
 
     return app
