@@ -25,8 +25,8 @@ pip3 install -r requirements.txt
 ```
 cd bankpy
 ```
-3. Run with flask.
+3. Run the script.
 ```
-python3 bank.py
+bash run.sh
 ```
 4. Open your browser and fetch the page: [http://127.0.0.1:5000](http://127.0.0.1:5000).
