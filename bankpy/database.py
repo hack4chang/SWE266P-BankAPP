@@ -56,4 +56,23 @@ class ZelleHistory(db.Model):
     def __repr__(self):
         return f'<Zelle {self.id}: {self.receiver}>'
 
+class AccountBalanceSnapshot:
+    account = None
+    def __init__(self, AccountBalance):
+        self.account = AccountBalance
     
+    def get_balance(self):
+        return self.account.balance
+
+class BankService:
+
+    def __init__(self) -> None:
+        pass
+
+    def deposit(snapshot, toDeposit):
+        snapshot.account.balance += toDeposit
+        return snapshot
+
+    def withdraw(self, snapshot, toWithdraw):
+        snapshot.account.balance -= toWithdraw
+        return snapshot

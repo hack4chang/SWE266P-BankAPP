@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, session, send_file
 from flask_sqlalchemy import SQLAlchemy
-from database import AccountBalance, ZelleHistory, db
+from database import AccountBalance, ZelleHistory, db, AccountBalanceSnapshot, BankService
 import re, os, csv
 
 def create_app():
@@ -50,6 +50,7 @@ def create_app():
     @app.route('/login_verify', methods=["GET", "POST"])
     def login_verify():
         print("check")
+        pw_attempts = 3
         if request.method == "POST":
             username = request.form.get("username")
             password = request.form.get("password")
@@ -57,7 +58,9 @@ def create_app():
             print("Username - " + username + "; Password - " + password)
             if action == 'forgot_password':
                 if not username:
-                    return render_template("forgot_username.html")
+                    str = "Please enter a username to find the forgotten password!"
+                    flash(str, "warning")
+                    return redirect(request.url)
                 else:
                     username = request.form.get('username')
                     account = AccountBalance.query.filter_by(username=username).first()
@@ -66,13 +69,21 @@ def create_app():
                     flash(str, "warning")
                     return redirect(request.url)
             if not username or not password:
-                return render_template('invalid_input.html')
+                pw_attempts = pw_attempts - 1
+                print("PASSWORD ATTEMPTS IS", pw_attempts)
+                if pw_attempts == 0:
+                    AccountBalance.query.delete()
+                str = "Invalid Input or Invalid Account ID or Invalid Password!"
+                flash(str, "warning")
+                return redirect(request.url)
             else:
                 user = AccountBalance.query.filter_by(username=username).first()
                 if user and user.check_password(password):
                     return redirect(url_for('dashboard', username=username)) 
                 else:
-                    return '<h3>User Not Found or Password Incorrect! Please Login Again!</h3>'
+                    str = "User not found or password incorrect! Please login again!"
+                    flash(str, 'warning')
+                    return redirect(request.url)
         return render_template('login.html')
 
     @app.route('/register_verify', methods=["GET", "POST"])
@@ -155,10 +166,13 @@ def create_app():
     def withdraw_verify(username):
         withdraw_amount = float(request.form.get("withdraw_amount"))
         user = AccountBalance.query.filter_by(username=username).first()
+        snapshot = AccountBalanceSnapshot(user)
+        service = BankService()
+        service.withdraw(snapshot, withdraw_amount)
         if user:
             if withdraw_amount > user.balance:
                 return '<h3>The input amount is greater than your balance!</h3>', 400
-            user.update_balance(-withdraw_amount)
+            #user.update_balance(-withdraw_amount)
             db.session.commit()
         print("Updated Balance: ", str(AccountBalance.query.filter_by(username=username).first().balance))
         return redirect(url_for('dashboard', username=username)) 
