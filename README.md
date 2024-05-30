@@ -13,7 +13,7 @@ docker build -t bank_app .
 ```
 2. Run the container.
 ```
-docker run -dp 30678:30678 bank_app
+docker run -dp 5000:5000 bank_app
 ```
 
 #### (B) Run in your local (virtual) environment
