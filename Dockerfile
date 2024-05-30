@@ -14,7 +14,7 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # Expose the port the application will run on
-EXPOSE 30678
+EXPOSE 5000
 
 # Command to run the application
 CMD [ "python3", "bankpy/bank.py" ]
