@@ -39,7 +39,9 @@
                     <tr>
                         <td>{{record.sender}}</td>
                         <td>{{record.amount}}</td>
-                        <td>{{record.memo | safe }}</td>
+                        <!-- ### [VULFIX] CWE-79: Improper Neutralization of Input During Web Page Generation (Cross-site Scripting) -->
+                        <!-- <td>{{record.memo | safe }}</td> -->
+                        <td>{{record.memo}}</td>
                     </tr>
                 {% endfor %}
             {% endif %}

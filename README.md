@@ -1,4 +1,6 @@
-# SWE266P-BankAPP
+# SWE266P-Recovered-Vulnerable-Bank-APP
+![Static Badge](https://img.shields.io/badge/UCI-blue) ![Static Badge](https://img.shields.io/badge/MSWE-yellow) ![Static Badge](https://img.shields.io/badge/Spring_2024-gray) ![Static Badge](https://img.shields.io/badge/266P-orange)
+
 ### Members
 1. Han Chang (hchang14@uci.edu)
 2. Ryan Soo😄 (soor@uci.edu)

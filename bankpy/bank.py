@@ -1,15 +1,21 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, session, send_file
-from flask_sqlalchemy import SQLAlchemy
+from uuid import uuid4
 from database import AccountBalance, ZelleHistory, db, AccountBalanceSnapshot, BankService
+from datetime import timedelta
 import re, os, csv
 
 def create_app():
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.secret_key = '123'
+    # stronger secret key
+    app.secret_key = str(uuid4())
+    # add salt to make hash more robust
+    SALT = ">@a3s$^*@(!f1i+C&0#sA8_023rL"
     db.init_app(app)
     os.makedirs("trans_history", exist_ok=True)
+    # session id timeout
+    app.permanent_session_lifetime = timedelta(minutes=10)
 
     with app.app_context():
         db.create_all()
@@ -18,31 +24,44 @@ def create_app():
     def page_not_found(e):
         return render_template('404.html'), 404
 
+
     @app.route('/')
     def home():
+        ### [VULFIX] CWE-639: Authorization Bypass Through User-Controlled Key 
+        if session.get('user') != None:
+           return redirect(url_for('dashboard', username=session.get('user')))
         return render_template('home.html')
+
 
     @app.route('/login', methods=["GET", "POST"])
     def login():
+        ### [VULFIX] CWE-639: Authorization Bypass Through User-Controlled Key 
+        if session.get('user') != None:
+            return redirect(url_for('dashboard', username=session.get('user')))
         message = request.args.get('message')
         print(message)
-        return render_template('login.html', message=message)
+        return render_template('login.html', message=message, secret=SALT)
  
 
     @app.route('/<username>/dashboard', methods=["GET", "POST"])
     def dashboard(username):
+        ### [VULFIX] CWE-639: Authorization Bypass Through User-Controlled Key 
+        if not session.get('user'):
+            return redirect(url_for('login'))
+        if username != session.get('user'):
+            return redirect(url_for('dashboard', username=session.get('user'))) 
         print("In the dashboard - username: " + username)
         user = AccountBalance.query.filter_by(username=username).first()
-        if not user:
-            flash("Warning: User does not exist.", "warning")
-            return redirect(url_for("login"))
+        # if not user:
+        #     flash("Warning: User does not exist.", "warning")
+        #     return redirect(url_for("login"))
         balance = "%.2f" % user.balance
         print("In the dashboard - balance: " + str(balance))
         return render_template('dashboard.html', username=username, balance=balance) 
 
+
     @app.route('/login_verify', methods=["GET", "POST"])
     def login_verify():
-        print("check")
         if request.method == "POST":
             username = request.form.get("username")
             password = request.form.get("password")
@@ -51,33 +70,37 @@ def create_app():
 
             user = AccountBalance.query.filter_by(username=username).first()
             if user and user.check_password(password):
+                session['user'] = username
+                session.permanent = True
+                session.modified = True
                 return redirect(url_for('dashboard', username=username)) 
-            elif user and action == 'forgot_password':
-                username = request.form.get('username')
-                account = AccountBalance.query.filter_by(username=username).first()
-                password = account.password
-                meesage = 'The password for ' + username + ' is: ' + password
-                flash(meesage, "warning")
-                return redirect(request.url)
+            # elif user and action == 'forgot_password':
+            #     username = request.form.get('username')
+            #     account = AccountBalance.query.filter_by(username=username).first()
+            #     password = account.password
+            #     message = 'The password for ' + username + ' is: ' + password
+            #     flash(message, "warning")
+            #     return redirect(request.url)
             else:
-                meesage = "User not found or password incorrect! Please login again!"
-                flash(meesage, 'warning')
-                return redirect(request.url)
+                message = "User not found or password incorrect! Please login again!"
+                flash(message, 'warning')
+                return redirect(url_for("login"))
         return render_template('login.html')
+
 
     @app.route('/register_verify', methods=["GET", "POST"])
     def register_verify():
-
         if request.method == "POST":
             username = request.form.get("username")
             password = request.form.get("password")
             password2 = request.form.get("password2")
             initial_balance = request.form.get("initial_balance")
-            if(initial_balance == ""):
-                initial_balance = 0
+            ### [VULFIX] CWE-20 Improper Input Validation 
+            if (initial_balance == "") or (float(initial_balance) < 0.0):
+                initial_balance = 0.0
             if not username or not password or not password2 or password != password2:
                 flash('Invalid Input or Invalid Account ID or Invalid Password!', "warning")
-                return redirect(request.url)
+                return redirect(url_for("register"))
         
             try:
                 print(f"[Register Request] Username - {username}; Password - {password}")
@@ -103,7 +126,7 @@ def create_app():
                     flash("Invalid username detected.", "warning")
                 else:
                     flash("Invalid Input or Invalid Account ID or Invalid Password!", "warning")
-                return redirect(request.url)
+                return redirect(url_for("register"))
         return render_template('register.html')
 
 
@@ -125,36 +148,66 @@ def create_app():
         else:
             print("Password successful")
         
+
     @app.route('/register', methods=["GET", "POST"])
     def register():
-        return render_template('register.html')
+        return render_template('register.html', secret=SALT)
+
 
     @app.route('/<username>/dashboard/deposit', methods=["GET", "POST"])
     def deposit(username):
+        ### [VULFIX] CWE-639: Authorization Bypass Through User-Controlled Key 
+        if not session.get('user'):
+            return redirect(url_for('login'))
+        if username != session.get('user'):
+            return redirect(url_for('deposit', username=session.get('user'))) 
         user = AccountBalance.query.filter_by(username=username).first()
-        if not user:
-            flash("user does not exist", "warning")
-            return redirect(url_for("login"))
+        # if not user:
+        #     flash("user does not exist", "warning")
+        #     return redirect(url_for("login"))
         balance = user.balance
         return render_template('deposit.html', username=username, balance=balance) 
 
+
     @app.route('/<username>/dashboard/withdraw', methods=["GET", "POST"])
     def withdraw(username):
+        ### [VULFIX] CWE-639: Authorization Bypass Through User-Controlled Key 
+        if not session.get('user'):
+            return redirect(url_for('login'))
+        if username != session.get('user'):
+            return redirect(url_for('withdraw', username=session.get('user'))) 
         user = AccountBalance.query.filter_by(username=username).first()
-        if not user:
-            flash("user does not exist", "warning")
-            return redirect(url_for("login"))
+        # if not user:
+        #     flash("user does not exist", "warning")
+        #     return redirect(url_for("login"))
         balance = user.balance
         return render_template('withdraw.html', username=username, balance=balance) 
     
+
     @app.route("/withdraw_verify/<username>", methods=["GET", "POST"])
     def withdraw_verify(username):
+        ### [VULFIX] CWE-639: Authorization Bypass Through User-Controlled Key 
+        if username != session.get('user'):
+            return redirect(url_for('withdraw_verify', username=session.get('user'))) 
         entered_amount = request.form.get("withdraw_amount")
         if not entered_amount:
             flash("Please enter amount to withdraw", "warning")
             return redirect(url_for("withdraw", username=username))
         withdraw_amount = float(entered_amount)
+        
+        ### [VULFIX] CWE-20 Improper Input Validation 
+        if withdraw_amount <= 0.0:
+            flash("Please enter amount greater than zero", "warning")
+            return redirect(url_for("withdraw", username=username))
+        
         user = AccountBalance.query.filter_by(username=username).first()
+        balance = float(user.balance)
+        
+        ### [VULFIX] CWE-20 Improper Input Validation 
+        if balance < withdraw_amount:
+            flash("Please enter amount greater than your current balance!", "warning")
+            return redirect(url_for("withdraw", username=username))
+
         snapshot = AccountBalanceSnapshot(user)
         service = BankService()
         service.withdraw(snapshot, withdraw_amount)
@@ -165,11 +218,20 @@ def create_app():
 
     @app.route("/deposit_verify/<username>", methods=["GET", "POST"])
     def deposit_verify(username):
+        ### [VULFIX] CWE-639: Authorization Bypass Through User-Controlled Key 
+        if username != session.get('user'):
+            return redirect(url_for('deposit_verify', username=session.get('user'))) 
         entered_amount = request.form.get("deposit_amount")
         if not entered_amount:
             flash("Please enter amount to deposit", "warning")
             return redirect(url_for("deposit", username=username))
         deposit_amount = float(entered_amount)
+        
+        ### [VULFIX] CWE-20 Improper Input Validation 
+        if deposit_amount <= 0.0:
+            flash("Please enter amount greater than zero", "warning")
+            return redirect(url_for("deposit", username=username))
+        
         user = AccountBalance.query.filter_by(username=username).first()
         if user:
             user.update_balance(+deposit_amount)
@@ -177,12 +239,18 @@ def create_app():
         print("Updated Balance: ", str(AccountBalance.query.filter_by(username=username).first().balance))
         return redirect(url_for('dashboard', username=username)) 
 
-    @app.route('/<username>/dashboard/zelle', methods=["POST"])
+        
+    @app.route('/<username>/dashboard/zelle', methods=["POST", "GET"])
     def zelle(username):
+        ### [VULFIX] CWE-639: Authorization Bypass Through User-Controlled Key 
+        if not session.get('user'):
+            return redirect(url_for('login'))
+        if username != session.get('user'):
+            return redirect(url_for('zelle', username=session.get('user'))) 
         user = AccountBalance.query.filter_by(username=username).first()
-        if not user:
-            flash("user does not exist", "warning")
-            return redirect(url_for("login"))
+        # if not user:
+        #     flash("user does not exist", "warning")
+        #     return redirect(url_for("login"))
         balance = user.balance
         history = []
         try:
@@ -203,8 +271,12 @@ def create_app():
 
         return render_template('zelle_transfer.html', username=username, balance=balance, history=history) 
         
-    @app.route('/zelle_verify/<username>/', methods=["POST"])
+        
+    @app.route('/zelle_verify/<username>/', methods=["POST", "GET"])
     def zelle_verify(username):
+        ### [VULFIX] CWE-639: Authorization Bypass Through User-Controlled Key 
+        if username != session.get('user'):
+            return redirect(url_for('zelle_verify', username=session.get('user'))) 
         receiver = request.form.get('receiver')
         amount = round(float(request.form.get('amount')), 2)
         memo = request.form.get('memo')
@@ -229,19 +301,25 @@ def create_app():
         
         return redirect(url_for('dashboard', username=username)) 
 
+
     @app.route('/<username>/zelle/download_zelle_history', methods=["GET"])
+    ### [VULFIX] CWE-22: Improper Limitation of a Pathname to a Restricted Directory (Path Traversal)
     def download_zelle_history(username):
-        file = request.args.get('file')
+        if username != session.get('user'):
+            return redirect(url_for('zelle', username=session.get('user')))
         try:
-            return send_file(file)
+            return send_file(f"trans_history/{username}.csv")
         except Exception as e:
             return render_template('404.html', username=username)
         
+
     @app.route('/logout', methods=["GET", "POST"])
     def logout():
+        session.pop('user', None)
         return redirect(url_for('home'))
 
     return app
+
 
 if __name__ == '__main__':
     app = create_app()

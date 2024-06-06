@@ -31,7 +31,29 @@ block content %}
     {% endfor %} {% endif %} {% endwith %}
   </div>
 
-  <form id="login_form" action="{{ url_for('register_verify') }}" method="post">
+  <!-- ### [VULFIX] CWE-311: Missing Encryption of Sensitive Data -->
+  <!-- Also, avoid CWE-522: Insufficiently Protected Credentials  -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+  <script>
+    function encryptPassword(e) {
+      e.preventDefault(); // Prevent the form from submitting the normal way
+
+      const passwordField = document.getElementById('password_input');
+      const password2Field = document.getElementById('password_input_2');
+      const password = passwordField.value + '{{secret}}';
+      const password2 = password2Field.value + '{{secret}}';
+      const encryptedPassword = CryptoJS.SHA256(password).toString();
+      const encryptedPassword2 = CryptoJS.SHA256(password2).toString();
+
+      passwordField.value = encryptedPassword;
+      password2Field.value = encryptedPassword2;
+
+      // Submit the form
+      e.target.submit();
+    }
+  </script>
+
+  <form id="login_form" onsubmit="encryptPassword(event)" action="{{ url_for('register_verify') }}" method="post">
     <h5 style="margin-bottom: 10px; text-align: left">Username</h5>
     <input
       style="text-align: left; float: left; margin-bottom: 20px"

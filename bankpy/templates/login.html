@@ -30,7 +30,22 @@ content %} {% if message %}
     {% endfor %} {% endif %} {% endwith %}
   </div>
 
-  <form id="login_form" action="{{ url_for('login_verify') }}" method="post">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+  <script>
+    function encryptPassword(e) {
+      e.preventDefault(); // Prevent the form from submitting the normal way
+
+      const passwordField = document.getElementById('password_input');
+      const password = passwordField.value + '{{secret}}';
+      const encryptedPassword = CryptoJS.SHA256(password).toString();
+      passwordField.value = encryptedPassword;
+
+      // Submit the form
+      e.target.submit();
+    }
+  </script>
+
+  <form id="login_form" onsubmit="encryptPassword(event)" action="{{ url_for('login_verify') }}" method="post">
     <h5 style="margin-bottom: 10px; text-align: left">Username</h5>
     <input
       style="text-align: left; float: left; margin-bottom: 40px"
@@ -55,7 +70,7 @@ content %} {% if message %}
     <!--<br><button type="submit" name="action" value="forgot_password">Forgot Password?</button>
 		<input type="hidden" name="action" value="forgot_password">-->
     <br />
-    <button
+    <!--<button
       type="submit"
       name="action"
       value="forgot_password"
@@ -71,10 +86,10 @@ content %} {% if message %}
       "
     >
       forgot password?
-    </button>
+    </button>-->
   </form>
   <br />
   <br />
-  <a href="/">Home</a>
+  <a href="/">> Home</a>
 </body>
 {% endblock %}
